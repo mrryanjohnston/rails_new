@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+  configure)
+    adduser --disabled-password --quiet --system \
+      --home /var/run/rails-new --no-create-home \
+      --gecos "Rails New daemon" --group rails-new
+    chown rails-new:rails-new \
+      /var/lib/rails-new/db \
+      /var/lib/rails-new/tmp \
+      /var/log/rails-new
+    cd /usr/lib/rails-new && bundle install --deployment
+  ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+  *)
+    echo "Oops."
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,11 @@
+[Unit]
+Description=A new Rails Service
+After=network.target
+
+[Service]
+User=rails-new
+ExecStart=/usr/bin/rails-production server
+ExecStop=/bin/kill -9 $(cat /var/lib/rails-new/tmp/pids/server.pid)
+
+[Install]
+WantedBy=multi-user.target

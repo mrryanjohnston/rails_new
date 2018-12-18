@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+
+case "$1" in
+    upgrade|deconfigure)
+    ;;
+    remove)
+      rm -r /usr/lib/rails-new
+      rm -r /var/lib/rails-new
+      rm -r /var/log/rails-new
+    ;;
+
+    failed-upgrade)
+    ;;
+
+    *)
+        echo "prerm called with unknown argument $1" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

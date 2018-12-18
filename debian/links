@@ -1,0 +1,3 @@
+var/lib/rails-new/db usr/lib/rails-new/db
+var/lib/rails-new/tmp usr/lib/rails-new/tmp
+var/log/rails-new usr/lib/rails-new/log

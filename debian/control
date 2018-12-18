@@ -1,0 +1,8 @@
+Source: rails-new
+Standards-Version: 4.0.0
+Maintainer: Ryan Johnston
+
+Package: rails-new
+Architecture: all
+Depends: ${misc:Depends}, ruby, bundler, nodejs, zlib1g-dev, libsqlite3-dev
+Description: New Rails Project

@@ -1,0 +1,9 @@
+app usr/lib/rails-new
+bin/rails-production usr/bin
+config usr/lib/rails-new
+config.ru usr/lib/rails-new
+Gemfile* usr/lib/rails-new
+lib usr/lib/rails-new
+package.json usr/lib/rails-new
+public usr/lib/rails-new
+Rakefile usr/lib/rails-new
