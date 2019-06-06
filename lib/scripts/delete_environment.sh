@@ -4,13 +4,23 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+if [ -z "$DOMAIN" ]
+then
+   echo "You must call this with the DOMAIN environment variable set."
+   echo ""
+   echo "DOMAIN=\"ryjo.codes\" ./lib/scripts/delete_environment.sh"
+   echo ""
+   echo "Or, even better, set it in your .bashrc (or similar) file!"
+   exit 1
+fi
+
 if [ -z "$1" ]
 then
   environment="production"
-  dns_entry="rails-new.ryjo.codes."
+  dns_entry="rails-new.$DOMAIN."
 else
   environment="$1"
-  dns_entry="rails-new-$environment.ryjo.codes."
+  dns_entry="rails-new-$environment.$DOMAIN."
 fi
 
 key_pair_file="$HOME/.aws/rails-new-$environment-key.pem"
@@ -169,14 +179,25 @@ else
   else
     echo -e "${GREEN}Yep!${NC}"
 
-    printf "Deleting snapshot that backed AMI %s... " "$ami_name"
+    printf "Looking for snapshot of ami %s... " "$ami_name"
 
-    if ! aws ec2 describe-snapshots \
-      --filter="Name=description,Values=*$ami*" > /dev/null
+    if ! snapshot_id=$(aws ec2 describe-snapshots \
+      --filter="Name=description,Values=*$ami*")
     then
-      echo -e "${RED}Nope.${NC}"
+      echo -e "${YELLOW}Nope.${NC}"
     else
-      echo -e "${GREEN}Yep!${NC}"
+      echo -e "${YELLOW}Found.${NC}"
+      # No idea why I have to do this
+      snapshot_id=$(jq -r 'first(.Snapshots[]).SnapshotId' <<< "$snapshot_id")
+
+      printf "Deleting snapshot that backed AMI %s... " "$ami_name"
+      if ! aws ec2 delete-snapshot \
+        --snapshot-id "$snapshot_id" > /dev/null
+      then
+        echo -e "${RED}Nope.${NC}"
+      else
+        echo -e "${GREEN}Yep!${NC}"
+      fi
     fi
   fi
 fi

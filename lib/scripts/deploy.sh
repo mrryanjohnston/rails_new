@@ -4,16 +4,25 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-ip="$(whatismyip)"
+if [ -z "$DOMAIN" ]
+then
+   echo "You must call this with the DOMAIN environment variable set."
+   echo ""
+   echo "DOMAIN=\"ryjo.codes\" ./lib/scripts/deploy.sh"
+   echo ""
+   echo "Or, even better, set it in your .bashrc (or similar) file!"
+   exit 1
+fi
+
 if [ -z "$1" ]
 then
   environment="production"
-  dns_entry="rails-new.ryjo.codes."
+  dns_entry="rails-new.$DOMAIN."
 else
   environment="$1"
-  dns_entry="rails-new-$environment.ryjo.codes."
+  dns_entry="rails-new-$environment.$DOMAIN."
 fi
-
+ip="$(whatismyip)"
 security_group_ec2_name="rails-new-$environment-ec2"
 key_pair_name="rails-new-$environment-key"
 key_pair_file="$HOME/.aws/rails-new-$environment-key.pem"
@@ -22,10 +31,11 @@ instance_name="rails-new-$environment"
 version=$(dpkg-parsechangelog -S version 2> /dev/null)
 built_deb_file="rails-new_${version}_all.deb"
 
-printf "The IP you'll use for this script... "
-echo -e "${GREEN}$ip${NC}"
-printf "Your detected IP (from DuckDuckGo)... "
-echo -e "${GREEN}$(whatismyip)${NC}"
+printf "The environment you'll create with this script... "
+echo -e "${GREEN}$environment${NC}"
+
+printf "The domain you'll deploy with this script... "
+echo -e "${GREEN}$dns_entry${NC}"
 
 printf "Looking for DNS entry %s... " "$dns_entry"
 hz=$(aws route53 list-hosted-zones | jq -r '.HostedZones[0].Id')

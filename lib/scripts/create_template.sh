@@ -4,7 +4,16 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-ip="$(whatismyip)"
+if [ -z "$DOMAIN" ] || [ -z "$IP" ]
+then
+   echo "You must call this with DOMAIN and IP environment variables set."
+   echo ""
+   echo "IP=\"127.0.0.1\" DOMAIN=\"ryjo.codes\" ./lib/scripts/create_template.sh"
+   echo ""
+   echo "Or, even better, set it in your .bashrc (or similar) file!"
+   exit 1
+fi
+
 key_pair_file="$HOME/.aws/rails-new-template-key.pem"
 temporary_public_key_pair_file="$key_pair_file.pub"
 key_pair_name="rails-new-template-key"
@@ -15,7 +24,7 @@ instance_name="rails-new-template"
 ami_name="rails-new-template"
 
 printf "The IP you'll use for this script... "
-echo -e "${GREEN}$ip${NC}"
+echo -e "${GREEN}$IP${NC}"
 printf "Your detected IP (from DuckDuckGo)... "
 detected_ip=$(curl -fs "https://api.duckduckgo.com/?q=ip&format=json" | jq -r '.Answer' | awk '{print $5}')
 echo -e "${GREEN}$detected_ip${NC}"
@@ -133,7 +142,7 @@ then
 
   if ! aws ec2 authorize-security-group-ingress \
     --group-id "$security_group_id" \
-    --cidr "$ip"/24 \
+    --cidr "$IP"/24 \
     --port 22 \
     --protocol tcp
   then

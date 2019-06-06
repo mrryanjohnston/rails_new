@@ -24,14 +24,25 @@ else
   else
     echo -e "${GREEN}Yep!${NC}"
 
-    printf "Deleting snapshot that backed AMI %s... " "$ami_name"
+    printf "Looking for snapshot of ami %s... " "$ami_name"
 
-    if ! aws ec2 describe-snapshots \
-      --filter="Name=description,Values=*$ami*" > /dev/null
+    if ! snapshot_id=$(aws ec2 describe-snapshots \
+      --filter="Name=description,Values=*$ami*")
     then
-      echo -e "${RED}Nope.${NC}"
+      echo -e "${YELLOW}Nope.${NC}"
     else
-      echo -e "${GREEN}Yep!${NC}"
+      echo -e "${YELLOW}Found.${NC}"
+      # No idea why I have to do this
+      snapshot_id=$(jq -r 'first(.Snapshots[]).SnapshotId' <<< "$snapshot_id")
+
+      printf "Deleting snapshot that backed AMI %s... " "$ami_name"
+      if ! aws ec2 delete-snapshot \
+        --snapshot-id "$snapshot_id" > /dev/null
+      then
+        echo -e "${RED}Nope.${NC}"
+      else
+        echo -e "${GREEN}Yep!${NC}"
+      fi
     fi
   fi
 fi

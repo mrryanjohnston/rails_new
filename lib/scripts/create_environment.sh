@@ -4,16 +4,25 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-ip="$(whatismyip)"
+if [ -z "$DOMAIN" ] || [ -z "$IP" ]
+then
+   echo "You must call this with DOMAIN and IP environment variables set."
+   echo ""
+   echo "IP=\"127.0.0.1\" DOMAIN=\"ryjo.codes\" ./lib/scripts/create_environment.sh"
+   echo ""
+   echo "Or, even better, set it in your .bashrc (or similar) file!"
+   exit 1
+fi
+
 if [ -z "$1" ]
 then
   environment="production"
-  dns_entry="rails-new.ryjo.codes."
+  dns_entry="rails-new.$DOMAIN."
 else
   environment="$1"
-  dns_entry="rails-new-$environment.ryjo.codes."
+  dns_entry="rails-new-$environment.$DOMAIN."
 fi
-
+ip="$(whatismyip)"
 security_group_ec2_name="rails-new-$environment-ec2"
 security_group_ec2_description="Rails New $environment ec2"
 security_group_efs_name="rails-new-$environment-efs"
@@ -29,8 +38,14 @@ image_name="rails-new-$environment-template"
 version=$(dpkg-parsechangelog -S version 2> /dev/null)
 built_deb_file="rails-new_${version}_all.deb"
 
+printf "The environment you'll create with this script... "
+echo -e "${GREEN}$environment${NC}"
+
+printf "The domain you'll create with this script... "
+echo -e "${GREEN}$dns_entry${NC}"
+
 printf "The IP you'll use for this script... "
-echo -e "${GREEN}$ip${NC}"
+echo -e "${GREEN}$IP${NC}"
 printf "Your detected IP (from DuckDuckGo)... "
 detected_ip=$(curl -fs "https://api.duckduckgo.com/?q=ip&format=json" | jq -r '.Answer' | awk '{print $5}')
 echo -e "${GREEN}$detected_ip${NC}"
@@ -74,7 +89,7 @@ then
 
   if ! aws ec2 authorize-security-group-ingress \
     --group-id "$security_group_ec2_id" \
-    --cidr "$ip"/24 \
+    --cidr "$IP"/24 \
     --port 22 \
     --protocol tcp
   then
@@ -96,7 +111,7 @@ then
 
   if ! aws ec2 authorize-security-group-ingress \
     --group-id "$security_group_ec2_id" \
-    --cidr "$ip"/24 \
+    --cidr "$IP"/24 \
     --port 80 \
     --protocol tcp
   then
@@ -483,9 +498,9 @@ else
   echo -e "${GREEN}Found.${NC}"
 
   printf "Checking if DNS entry is pointed at instance ip %s... " "$instance_ip_address"
-  dns_record_for_instance_ip_address=$(jq -r '.ResourceRecords[] | select (.Value=="$instance_ip_address")' <<< "$dns_record")
+  dns_record_for_instance_ip_address=$(jq -r ".ResourceRecords[] | .Value==\"$instance_ip_address\"" <<< "$dns_record")
 
-  if [ "$dns_record_for_instance_ip_address" == '' ]
+  if [ "$dns_record_for_instance_ip_address" == 'false' ]
   then
     echo -e "${YELLOW}Nope.${NC}"
   else

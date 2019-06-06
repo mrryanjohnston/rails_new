@@ -4,13 +4,23 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+if [ -z "$DOMAIN" ]
+then
+   echo "You must call this with the DOMAIN environment variable set."
+   echo ""
+   echo "DOMAIN=\"ryjo.codes\" ./lib/scripts/prune_environment.sh"
+   echo ""
+   echo "Or, even better, set it in your .bashrc (or similar) file!"
+   exit 1
+fi
+
 if [ -z "$1" ]
 then
   environment="production"
-  dns_entry="rails-new.ryjo.codes."
+  dns_entry="rails-new.$DOMAIN."
 else
   environment="$1"
-  dns_entry="rails-new-$environment.ryjo.codes."
+  dns_entry="rails-new-$environment.$DOMAIN."
 fi
 
 instance_name="rails-new-$environment"
